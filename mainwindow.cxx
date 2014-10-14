@@ -6,7 +6,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    phase = 0;
+    is_split = false;
+    is_mono = false;
+    is_loaded = false;
 }
 
 MainWindow::~MainWindow()
@@ -19,12 +21,14 @@ void MainWindow::on_load_btn_clicked()
     QString str = QFileDialog::getOpenFileName();
     img = QImage(str);
     ui->img_src->setPixmap(QPixmap::fromImage(img));
-    phase = 1;
+    is_split = false;
+    is_mono = false;
+    is_loaded = true;
 }
 
 void MainWindow::on_split_btn_clicked()
 {
-    if (phase < 1) {
+    if (!is_loaded) {
         return;
     }
     ui->img_src->clear();
@@ -55,13 +59,14 @@ void MainWindow::on_split_btn_clicked()
         }
     }
     img = new_img;
-    phase = 2;
+    is_split = true;
+    is_mono = true;
     ui->img_src->setPixmap(QPixmap::fromImage(img));
 }
 
 void MainWindow::on_predict_btn_clicked()
 {
-    if (phase < 2) {
+    if (!is_split || !is_mono) {
         return;
     }
     ui->img_src->clear();
@@ -91,13 +96,12 @@ void MainWindow::on_predict_btn_clicked()
             img.setPixel(x, y + h * 3, px_b);
         }
     }
-    phase = 3;
     ui->img_src->setPixmap(QPixmap::fromImage(img));
 }
 
 void MainWindow::on_delta_btn_clicked()
 {
-    if (phase < 2) {
+    if (!is_split || !is_mono) {
         return;
     }
     ui->img_src->clear();
@@ -142,20 +146,20 @@ void MainWindow::on_delta_btn_clicked()
             }
         }
     }
-    phase = 4;
     img = new_img;
     ui->img_src->setPixmap(QPixmap::fromImage(img));
 }
 
 void MainWindow::on_mark_btn_clicked()
 {
-    if (phase < 2) {
+    if (!is_mono) {
         return;
     }
     ui->img_src->clear();
     int w, h;
     w = img.width();
     h = img.height();
+    marks = QImage(w, h, QImage::Format_RGB32);
     int old   = -1;
     int older = -2;
     int y, x;
@@ -172,18 +176,17 @@ void MainWindow::on_mark_btn_clicked()
            } else {
                npx = qRgb(0, 0, 0);
            }
-           img.setPixel(x, y, npx);
+           marks.setPixel(x, y, npx);
            older = old;
            old = cur;
         }
     }
-    phase = 1;
-    ui->img_src->setPixmap(QPixmap::fromImage(img));
+    ui->img_src->setPixmap(QPixmap::fromImage(marks));
 }
 
 void MainWindow::on_save_btn_clicked()
 {
-    if (phase < 2) {
+    if (!is_mono) {
         return;
     }
     QString fname;
