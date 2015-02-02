@@ -120,7 +120,7 @@ void MainWindow::on_delta_btn_clicked()
         for (z=0; z<4; z++) {
             int px_l = qBlue(img.pixel(x - 1, h * z));
             int px_0 = qBlue(img.pixel(x    , h * z));
-            int px_p = 255 & (px_0 - px_l + 127);
+            int px_p = 0xff & (px_0 - px_l + 128);
             QRgb px = qRgb(px_p, px_p, px_p);
             new_img.setPixel(x, h * z, px);
         }
@@ -131,7 +131,7 @@ void MainWindow::on_delta_btn_clicked()
         for (z=0; z<4; z++) {
             int px_t = qBlue(img.pixel(0, y + h * z - 1));
             int px_0 = qBlue(img.pixel(0, y + h * z));
-            int px_p = 255 & (px_0 - px_t + 127);
+            int px_p = 0xff & (px_0 - px_t + 128);
             QRgb px = qRgb(px_p, px_p, px_p);
             new_img.setPixel(0, y + h * z, px);
         }
@@ -146,7 +146,7 @@ void MainWindow::on_delta_btn_clicked()
                 int px_x = qBlue(img.pixel(x - 1, y + h * z - 1));
                 int px_0 = qBlue(img.pixel(x    , y + h * z));
                 /* 2 * gradient + 3 * mean */
-                int px_p = 255 & (px_0 - (px_t * 5 + px_l * 5 - px_x * 2) / 8 + 127);
+                int px_p = 0xff & (px_0 - (px_t * 5 + px_l * 5 - px_x * 2) / 8 + 128);
                 QRgb px = qRgb(px_p, px_p, px_p);
                 new_img.setPixel(x, y + h * z, px);
             }
@@ -167,25 +167,30 @@ void MainWindow::on_mark_btn_clicked()
     w = img.width();
     h = img.height();
     marks = QImage(w, h, QImage::Format_RGB32);
-    int old   = -1;
-    int older = -2;
+    int history  = 0;
     int y, x;
     for (y=0; y<h; y++) {
         for (x=0; x<w; x++) {
-           QRgb npx;
-           int cur = qBlue(img.pixel(x, y));
-           if (cur == old) {
-               if (cur == older) {
-                   npx = qRgb(255, 255, 0);
-               } else {
-                   npx = qRgb(0, 0, 255);
-               }
-           } else {
-               npx = qRgb(0, 0, 0);
+            QRgb npx;
+            int cur = qBlue(img.pixel(x, y));
+            if (cur != 128) {
+		if (cur > 141 || cur < 115) {
+		    npx = qRgb(255, 255, 0);
+		} else if (cur > 133 || cur < 123) {
+		    npx = qRgb(96, 0, 0);
+		} else {
+                    npx = qRgb(0, 0, 0);
+		}
+                history = 0;
+            } else {
+                if (history) {
+                    npx = qRgb(0, 255, 0);
+                } else {
+                    npx = qRgb(0, 0, 255);
+                }
+	        history++;
            }
            marks.setPixel(x, y, npx);
-           older = old;
-           old = cur;
         }
     }
     ui->img_src->setPixmap(QPixmap::fromImage(marks));
