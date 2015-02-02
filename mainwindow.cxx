@@ -102,11 +102,15 @@ void MainWindow::on_delta_btn_clicked()
     h = img.height() / 4;
     QImage new_img = QImage(w, h * 4, QImage::Format_RGB32);
     int x, y, z;
+
+    /* Top left pixel. */
     for (z=0; z<4; z++) {
         int src = qBlue(img.pixel(0, h * z));
         QRgb dst = qRgb(src, src, src);
         new_img.setPixel(0, h * z, dst);
     }
+
+    /* Top row of pixels. */
     for (x=1; x<w; x++) {
         for (z=0; z<4; z++) {
             int px_l = qBlue(img.pixel(x - 1, h * z));
@@ -116,6 +120,8 @@ void MainWindow::on_delta_btn_clicked()
             new_img.setPixel(x, h * z, px);
         }
     }
+
+    /* Left column of pixels. */
     for (y=1; y<h; y++) {
         for (z=0; z<4; z++) {
             int px_t = qBlue(img.pixel(0, y + h * z - 1));
@@ -125,6 +131,8 @@ void MainWindow::on_delta_btn_clicked()
             new_img.setPixel(0, y + h * z, px);
         }
     }
+
+    /* The rest of pixels. */
     for (y=1; y<h; y++) {
         for (x=1; x<w; x++) {
             for (z=0; z<4; z++) {
@@ -132,12 +140,14 @@ void MainWindow::on_delta_btn_clicked()
                 int px_t = qBlue(img.pixel(x    , y + h * z - 1));
                 int px_x = qBlue(img.pixel(x - 1, y + h * z - 1));
                 int px_0 = qBlue(img.pixel(x    , y + h * z));
-                int px_p = 255 & (px_0 - (px_x * 2 + px_t * 3 + px_l * 3) / 8 + 127);
+                /* 2 * gradient + 3 * mean */
+                int px_p = 255 & (px_0 - (px_t * 5 + px_l * 5 - px_x * 2) / 8 + 127);
                 QRgb px = qRgb(px_p, px_p, px_p);
                 new_img.setPixel(x, y + h * z, px);
             }
         }
     }
+
     img = new_img;
     ui->img_src->setPixmap(QPixmap::fromImage(img));
 }
