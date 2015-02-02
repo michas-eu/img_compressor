@@ -70,24 +70,29 @@ void MainWindow::on_predict_btn_clicked()
     int w, h;
     w = img.width();
     h = img.height() / 4;
+    QImage new_img = QImage(w, h * 4, QImage::Format_RGB32);
     int x, y;
+
     for (y=0; y<h; y++) {
         for (x=0; x<w; x++) {
             int g = qBlue(img.pixel(x, y + h * 0));
             int r = qBlue(img.pixel(x, y + h * 1));
             int b = qBlue(img.pixel(x, y + h * 2));
-            int tmp;
-            tmp = (5 * g + 3 * r) / 8;
-            b = 255 & (b - tmp + 127);
-            tmp = g;
-            r = 255 & (r - tmp + 127);
-            QRgb px_r, px_b;
-            px_r = qRgb(r, r, r);
-            px_b = qRgb(b, b, b);
-            img.setPixel(x, y + h * 1, px_r);
-            img.setPixel(x, y + h * 2, px_b);
+            int o = (r - b + 128) & 0xff;
+            int p = (r - o / 2 - g + 192) & 0xff;
+            int l = (g + p / 2 - 64) & 0xff;
+            QRgb px_g, px_r, px_b, px_a;
+            px_g = qRgb(l, l, l);
+            px_r = qRgb(o, o, o);
+            px_b = qRgb(p, p, p);
+            px_a = img.pixel(x, y + h * 3);
+            new_img.setPixel(x, y + h * 0, px_g);
+            new_img.setPixel(x, y + h * 1, px_r);
+            new_img.setPixel(x, y + h * 2, px_b);
+            new_img.setPixel(x, y + h * 3, px_a);
         }
     }
+    img = new_img;
     ui->img_src->setPixmap(QPixmap::fromImage(img));
 }
 
