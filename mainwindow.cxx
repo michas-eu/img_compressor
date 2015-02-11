@@ -174,9 +174,9 @@ void MainWindow::on_mark_btn_clicked()
             QRgb npx;
             int cur = qBlue(img.pixel(x, y));
             if (cur != 128) {
-		if (cur > 141 || cur < 115) {
+		if (cur > 148 || cur < 108) {
 		    npx = qRgb(255, 255, 0);
-		} else if (cur > 133 || cur < 123) {
+		} else if (cur > 132 || cur < 124) {
 		    npx = qRgb(96, 0, 0);
 		} else {
                     npx = qRgb(0, 0, 0);
@@ -218,11 +218,44 @@ void MainWindow::on_save_btn_clicked()
     int y, x;
     for (y=0; y<h; y++) {
         for (x=0; x<w; x++) {
-            unsigned char byte;
+            unsigned char byte, b1, b2;
             int pre;
             pre = qBlue(img.pixel(x, y));
             byte = (unsigned char)(255 & pre);
-            out << byte;
+	    if (byte == 0x80) {
+		    byte = 0 + 'a';
+		    out << byte;
+	    } else if (byte > 0x80 && byte <= 0x84) {
+		    byte = byte - 0x81 + 4 + 'a';
+		    out << byte;
+	    } else if (byte < 0x80 && byte >= 0x7c) {
+		    byte = 0x7f - byte + 8 +'a';
+		    out << byte;
+	    } else if (byte > 0x80 && byte <= 0x94) {
+		    byte = byte - 0x85;
+		    b1 = (byte & 0xf) + 'a';
+		    byte = 12 + 'a';
+		    out << byte << b1;
+	    } else if (byte < 0x80 && byte >= 0x6c) {
+		    byte = 0x7b - byte;
+		    b1 = (byte & 0xf) + 'a';
+		    byte = 13 + 'a';
+		    out << byte << b1;
+	    } else if (byte > 0x80) {
+		    byte = byte - 0x94;
+		    b1 = ((byte >> 4) & 0xf) + 'a';
+		    b2 = (byte & 0xf) + 'a';
+		    byte = 14 + 'a';
+		    out << byte << b1 << b2;
+	    } else if (byte < 0x80) {
+		    byte = 0x6c - byte;
+		    b1 = ((byte >> 4) & 0xf) + 'a';
+		    b2 = (byte & 0xf) + 'a';
+		    byte = 15 + 'a';
+		    out << byte << b1 << b2;
+	    }else {
+                out << byte;
+	    }
         }
     }
     file.close();
