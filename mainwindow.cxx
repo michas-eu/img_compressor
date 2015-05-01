@@ -9,18 +9,21 @@ MainWindow::MainWindow(QWidget *parent) :
     is_split = false;
     is_mono = false;
     is_loaded = false;
+    img_hlp = NULL;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete img_hlp;
 }
 
 void MainWindow::on_load_btn_clicked()
 {
     QString str = QFileDialog::getOpenFileName();
     img = QImage(str);
-    ui->img_src->setPixmap(QPixmap::fromImage(img));
+    this->img_hlp = new image_helper(img);
+    ui->img_src->setPixmap(this->img_hlp->get_src());
     is_split = false;
     is_mono = false;
     is_loaded = true;

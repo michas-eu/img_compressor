@@ -13,8 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cxx\
-        mainwindow.cxx
+        mainwindow.cxx \
+    image_helper.cxx
 
-HEADERS  += mainwindow.hxx
+HEADERS  += mainwindow.hxx \
+    image_helper.hxx
 
 FORMS    += mainwindow.ui

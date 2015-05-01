@@ -7,6 +7,8 @@
 #include <QImage>
 #include <QPixmap>
 
+#include "image_helper.hxx"
+
 namespace Ui {
 class MainWindow;
 }
@@ -31,6 +33,7 @@ private:
     Ui::MainWindow *ui;
     QImage img;
     QImage marks;
+    image_helper *img_hlp;
     bool is_loaded;
     bool is_split;
     bool is_mono;
