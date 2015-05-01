@@ -15,6 +15,7 @@ public:
 	void reset();
 	QPixmap get_src();
 	QPixmap get_gray();
+	void proc_colours();
 
 private:
 	QImage src;

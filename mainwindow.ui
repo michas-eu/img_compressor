@@ -45,9 +45,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="predict_btn">
+       <widget class="QPushButton" name="colours_btn">
         <property name="text">
-         <string>Predict</string>
+         <string>Colours</string>
         </property>
        </widget>
       </item>

@@ -37,39 +37,11 @@ void MainWindow::on_split_btn_clicked()
     ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
-void MainWindow::on_predict_btn_clicked()
-{
-    if (!is_split || !is_mono) {
-        return;
-    }
-    ui->img_src->clear();
-    int w, h;
-    w = img.width();
-    h = img.height() / 4;
-    QImage new_img = QImage(w, h * 4, QImage::Format_RGB32);
-    int x, y;
 
-    for (y=0; y<h; y++) {
-        for (x=0; x<w; x++) {
-            int g = qBlue(img.pixel(x, y + h * 0));
-            int r = qBlue(img.pixel(x, y + h * 1));
-            int b = qBlue(img.pixel(x, y + h * 2));
-            int o = (r - b + 128) & 0xff;
-            int p = (r - o / 2 - g + 192) & 0xff;
-            int l = (g + p / 2 - 64) & 0xff;
-            QRgb px_g, px_r, px_b, px_a;
-            px_g = qRgb(l, l, l);
-            px_r = qRgb(o, o, o);
-            px_b = qRgb(p, p, p);
-            px_a = img.pixel(x, y + h * 3);
-            new_img.setPixel(x, y + h * 0, px_g);
-            new_img.setPixel(x, y + h * 1, px_r);
-            new_img.setPixel(x, y + h * 2, px_b);
-            new_img.setPixel(x, y + h * 3, px_a);
-        }
-    }
-    img = new_img;
-    ui->img_src->setPixmap(QPixmap::fromImage(img));
+void MainWindow::on_colours_btn_clicked()
+{
+	this->img_hlp->proc_colours();
+	ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
 void MainWindow::on_delta_btn_clicked()
