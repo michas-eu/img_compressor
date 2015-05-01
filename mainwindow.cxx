@@ -110,6 +110,7 @@ void MainWindow::on_delta_btn_clicked()
 
     /* Top left pixel. */
     for (z=0; z<4; z++) {
+	/* No prediction. */
         int src = qBlue(img.pixel(0, h * z));
         QRgb dst = qRgb(src, src, src);
         new_img.setPixel(0, h * z, dst);
@@ -118,6 +119,7 @@ void MainWindow::on_delta_btn_clicked()
     /* Top row of pixels. */
     for (x=1; x<w; x++) {
         for (z=0; z<4; z++) {
+	    /* Predict from left pixel. */
             int px_l = qBlue(img.pixel(x - 1, h * z));
             int px_0 = qBlue(img.pixel(x    , h * z));
             int px_p = 0xff & (px_0 - px_l + 128);
@@ -129,6 +131,7 @@ void MainWindow::on_delta_btn_clicked()
     /* Left column of pixels. */
     for (y=1; y<h; y++) {
         for (z=0; z<4; z++) {
+	    /* Predict from top pixel. */
             int px_t = qBlue(img.pixel(0, y + h * z - 1));
             int px_0 = qBlue(img.pixel(0, y + h * z));
             int px_p = 0xff & (px_0 - px_t + 128);
@@ -145,8 +148,19 @@ void MainWindow::on_delta_btn_clicked()
                 int px_t = qBlue(img.pixel(x    , y + h * z - 1));
                 int px_x = qBlue(img.pixel(x - 1, y + h * z - 1));
                 int px_0 = qBlue(img.pixel(x    , y + h * z));
-                /* 2 * gradient + 3 * mean */
-                int px_p = 0xff & (px_0 - (px_t * 5 + px_l * 5 - px_x * 2) / 8 + 128);
+		int px_p;
+		if (px_x >= px_l && px_x >= px_t) {
+		    /* Expecting light line on top or left. */
+		    px_p = px_l <= px_t ? px_l : px_t;
+		} else if (px_x <= px_l && px_x <= px_t) {
+		    /* Expecting dark line on top or left. */
+		    px_p = px_l >= px_t ? px_l : px_t;
+		} else {
+		    /* Expecting gradient */
+                    /* 2 * gradient + 3 * mean */
+		    px_p = (px_t * 5 + px_l * 5 - px_x * 2) / 8;
+		}
+		px_p = 0xff & (px_0 - px_p + 128);
                 QRgb px = qRgb(px_p, px_p, px_p);
                 new_img.setPixel(x, y + h * z, px);
             }
