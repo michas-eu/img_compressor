@@ -86,6 +86,7 @@ QPixmap image_helper::get_visualise()
 		QPair<char, int> e;
 		QPoint pt = QPoint(0, 0);
 		QRgb black = qRgb(0,0,0);
+		QRgb blue = qRgb(0,0,255);
 		QRgb green = qRgb(0,128,0);
 		QRgb yellow = qRgb(255,255,0);
 		QRgb red = qRgb(255,0,0);
@@ -98,7 +99,7 @@ QPixmap image_helper::get_visualise()
 				this->visualise.setPixel(pt,yellow);
 				adv_point(&pt, w);
 			} else if (e.first == '0' && e.second == 1) {
-				this->visualise.setPixel(pt,black);
+				this->visualise.setPixel(pt,blue);
 				adv_point(&pt, w);
 			} else if (e.first == '0' && e.second > 1) {
 				int i;
