@@ -57,9 +57,6 @@ void MainWindow::on_mark_btn_clicked()
 
 void MainWindow::on_save_btn_clicked()
 {
-    if (!is_mono) {
-        return;
-    }
     QString fname;
     fname = QFileDialog::getSaveFileName();
     if (fname.isEmpty()) {
@@ -68,54 +65,10 @@ void MainWindow::on_save_btn_clicked()
     QFile file(fname);
     file.open(QIODevice::WriteOnly);
     QDataStream out(&file);
-    int w, h;
-    w = img.width();
-    h = img.height();
-    out.writeRawData(QString("Trip_01b").toLatin1(), 8);
-    out << (quint16)w;
-    out << (quint16)h;
-    int y, x;
-    for (y=0; y<h; y++) {
-        for (x=0; x<w; x++) {
-            unsigned char byte, b1, b2;
-            int pre;
-            pre = qBlue(img.pixel(x, y));
-            byte = (unsigned char)(255 & pre);
-	    if (byte == 0x80) {
-		    byte = 0 + 'a';
-		    out << byte;
-	    } else if (byte > 0x80 && byte <= 0x84) {
-		    byte = byte - 0x81 + 4 + 'a';
-		    out << byte;
-	    } else if (byte < 0x80 && byte >= 0x7c) {
-		    byte = 0x7f - byte + 8 +'a';
-		    out << byte;
-	    } else if (byte > 0x80 && byte <= 0x94) {
-		    byte = byte - 0x85;
-		    b1 = (byte & 0xf) + 'a';
-		    byte = 12 + 'a';
-		    out << byte << b1;
-	    } else if (byte < 0x80 && byte >= 0x6c) {
-		    byte = 0x7b - byte;
-		    b1 = (byte & 0xf) + 'a';
-		    byte = 13 + 'a';
-		    out << byte << b1;
-	    } else if (byte > 0x80) {
-		    byte = byte - 0x94;
-		    b1 = ((byte >> 4) & 0xf) + 'a';
-		    b2 = (byte & 0xf) + 'a';
-		    byte = 14 + 'a';
-		    out << byte << b1 << b2;
-	    } else if (byte < 0x80) {
-		    byte = 0x6c - byte;
-		    b1 = ((byte >> 4) & 0xf) + 'a';
-		    b2 = (byte & 0xf) + 'a';
-		    byte = 15 + 'a';
-		    out << byte << b1 << b2;
-	    }else {
-                out << byte;
-	    }
-        }
-    }
+    QPair<int, int> wh = this->img_hlp->get_wh();
+    out.writeRawData(QString("Trip_01").toLatin1(), 8);
+    out << (quint16)wh.first;
+    out << (quint16)wh.second;
+    out << img_hlp->get_string();
     file.close();
 }

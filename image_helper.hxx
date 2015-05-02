@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QPair>
 #include <QPoint>
+#include <QByteArray>
 #include <QImage>
 #include <QPixmap>
 
@@ -16,9 +17,11 @@ public:
 	image_helper(QImage img);
 	~image_helper();
 	void reset();
+	QPair<int,int> get_wh();
 	QPixmap get_src();
 	QPixmap get_gray();
 	QPixmap get_visualise();
+	QByteArray get_string();
 	void proc_colours();
 	void proc_spatial();
 

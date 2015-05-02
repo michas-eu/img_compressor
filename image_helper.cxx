@@ -5,6 +5,7 @@ static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *ou
 static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out);
 static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out);
 static void adv_point(QPoint *src, int w);
+static char from_safe_int(int i);
 
 image_helper::image_helper(QImage img)
 {
@@ -15,6 +16,11 @@ image_helper::image_helper(QImage img)
 image_helper::~image_helper()
 {
 	/* No public alocations. */
+}
+
+QPair<int, int> image_helper::get_wh()
+{
+	return qMakePair(this->src.width(), this->src.height());
 }
 
 QPixmap image_helper::get_src()
@@ -108,6 +114,40 @@ QPixmap image_helper::get_visualise()
 		}
 	}
 	return QPixmap::fromImage(this->visualise);
+}
+
+QByteArray image_helper::get_string()
+{
+	QList< QPair<char, int> > tmp = this->analyse();
+	QPair<char, int> e;
+	QByteArray ret("");
+
+	int t1, t2;
+	while (!tmp.isEmpty()) {
+		e = tmp.takeFirst();
+		if (e.first == '+') {
+			t1 = 0x10 | e.second;
+			ret += from_safe_int(t1);
+		} else if (e.first == '-') {
+			t1 = 0x30 | e.second;
+			ret += from_safe_int(t1);
+		} else if (e.first == 'r') {
+			t1 = 0x20 | ((e.second & 0x3c0) >> 6);
+			t2 = e.second & 0x3f;
+			ret += from_safe_int(t1);
+			ret += from_safe_int(t2);
+		} else if (e.first == '0' && e.second <= 0xf) {
+			t1 = e.second;
+			ret += from_safe_int(t1);
+		} else if (e.first == '0') {
+			tmp.prepend(qMakePair('0',e.second & 0xf));
+			tmp.prepend(qMakePair('0',e.second >> 4));
+		} else {
+			/* This is an error. */
+			ret += from_safe_int(0xff);
+		}
+	}
+	return ret;
 }
 
 void image_helper::proc_colours()
@@ -353,4 +393,73 @@ static void adv_point(QPoint *src, int w) {
 		src->ry() ++;
 		src->rx() = 0;
 	}
+}
+
+static char from_safe_int(int i) {
+	QVector<char> map(64);
+	map[0]  = 'A';
+	map[1]  = 'B';
+	map[2]  = 'C';
+	map[3]  = 'D';
+	map[4]  = 'E';
+	map[5]  = 'F';
+	map[6]  = 'G';
+	map[7]  = 'H';
+	map[8]  = 'I';
+	map[9]  = 'J';
+	map[10] = 'K';
+	map[11] = 'L';
+	map[12] = 'M';
+	map[13] = 'N';
+	map[14] = 'O';
+	map[15] = 'P';
+	map[16] = 'Q';
+	map[17] = 'R';
+	map[18] = 'S';
+	map[19] = 'T';
+	map[20] = 'U';
+	map[21] = 'V';
+	map[22] = 'W';
+	map[23] = 'X';
+	map[24] = 'Y';
+	map[25] = 'Z';
+	map[26] = 'a';
+	map[27] = 'b';
+	map[28] = 'c';
+	map[29] = 'd';
+	map[30] = 'e';
+	map[31] = 'f';
+	map[32] = 'g';
+	map[33] = 'h';
+	map[34] = 'i';
+	map[35] = 'j';
+	map[36] = 'k';
+	map[37] = 'l';
+	map[38] = 'm';
+	map[39] = 'n';
+	map[40] = 'o';
+	map[41] = 'p';
+	map[42] = 'q';
+	map[43] = 'r';
+	map[44] = 's';
+	map[45] = 't';
+	map[46] = 'u';
+	map[47] = 'v';
+	map[48] = 'w';
+	map[49] = 'x';
+	map[50] = 'y';
+	map[51] = 'z';
+	map[52] = '0';
+	map[53] = '1';
+	map[54] = '2';
+	map[55] = '3';
+	map[56] = '4';
+	map[57] = '5';
+	map[58] = '6';
+	map[59] = '7';
+	map[60] = '8';
+	map[61] = '9';
+	map[62] = '+';
+	map[63] = '/';
+	return map.value(i, '*');
 }
