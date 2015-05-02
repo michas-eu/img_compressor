@@ -172,7 +172,7 @@ QByteArray image_helper::get_string()
 	return ret;
 }
 
-void image_helper::proc_colours()
+void image_helper::proc_colours(bool reverse)
 {
 	if (!this->planes_ready) {
 		this->reset_planes();
@@ -188,25 +188,11 @@ void image_helper::proc_colours()
 	for (y=0; y<h; y++) {
 		for (x=0; x<w; x++) {
 			int i = x + y * w;
-
-			qint16 l, o, p;
-			qint16 g, r, b;
-
-			g = this->plane_1[i] >> 1;
-			r = this->plane_2[i] >> 1;
-			b = this->plane_3[i] >> 1;
-
-			l = (g / 2 + r / 4 + b / 4);
-			o = (r - b);
-			p = (r / 2 + b / 2 - g);
-
-			l <<= 1;
-			o += 0xff;
-			p += 0xff;
-
-			this->plane_1[i] = l;
-			this->plane_2[i] = o;
-			this->plane_3[i] = p;
+			if (reverse) {
+				this->color_to_grba(i);
+			} else {
+				this->color_to_lopa(i);
+			}
 		}
 	}
 }
@@ -340,6 +326,54 @@ QList< QPair<char, int> > image_helper::analyse()
 	}
 
 	return ret;
+}
+
+void image_helper::color_to_lopa(int i)
+{
+	qint16 l, o, p;
+	qint16 g, r, b;
+	qint16 t;
+
+	g = this->plane_1[i] >> 1;
+	r = this->plane_2[i] >> 1;
+	b = this->plane_3[i] >> 1;
+
+	o = r - b;
+	t = b + o / 2;
+	p = t - g;
+	l = t - p / 2;
+
+	l <<= 1;
+	o += 0xff;
+	p += 0xff;
+
+	this->plane_1[i] = l;
+	this->plane_2[i] = o;
+	this->plane_3[i] = p;
+}
+
+void image_helper::color_to_grba(int i)
+{
+	qint16 g, r, b;
+	qint16 l, o, p;
+	qint16 t;
+
+	l = this->plane_1[i] >> 1;
+	o = this->plane_2[i] - 0xff;
+	p = this->plane_3[i] - 0xff;
+
+	t = l + p / 2;
+	g = t - p;
+	b = t - o / 2;
+	r = o + b;
+
+	g <<= 1;
+	r <<= 1;
+	b <<= 1;
+
+	this->plane_1[i] = g;
+	this->plane_2[i] = r;
+	this->plane_3[i] = b;
 }
 
 static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out)

@@ -38,6 +38,14 @@ void MainWindow::on_colours_btn_clicked()
 	ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
+
+void MainWindow::on_uncolours_btn_clicked()
+{
+	bool reverse = true;
+	this->img_hlp->proc_colours(reverse);
+	ui->img_src->setPixmap(this->img_hlp->get_gray());
+}
+
 void MainWindow::on_spatial_btn_clicked()
 {
 	this->img_hlp->proc_spatial();

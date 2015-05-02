@@ -22,7 +22,7 @@ public:
 	QPixmap get_gray();
 	QPixmap get_visualise();
 	QByteArray get_string();
-	void proc_colours();
+	void proc_colours(bool reverse=false);
 	void proc_spatial();
 
 private:
@@ -36,6 +36,8 @@ private:
 	void reset_planes();
 	QList<quint16> get_raw();
 	QList< QPair<char, int> > analyse();
+	void color_to_lopa(int i);
+	void color_to_grba(int i);
 };
 
 #endif // IMAGE_HXX

@@ -19,46 +19,53 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QGridLayout" name="gridLayout">
       <property name="sizeConstraint">
        <enum>QLayout::SetNoConstraint</enum>
       </property>
-      <item>
+      <item row="0" column="0">
        <widget class="QPushButton" name="load_btn">
         <property name="text">
          <string>Load</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QPushButton" name="split_btn">
         <property name="text">
          <string>Split</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="2">
        <widget class="QPushButton" name="spatial_btn">
         <property name="text">
          <string>Spatial</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="3">
        <widget class="QPushButton" name="colours_btn">
         <property name="text">
          <string>Colours</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="3">
+       <widget class="QPushButton" name="uncolours_btn">
+        <property name="text">
+         <string>Uncolours</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
        <widget class="QPushButton" name="mark_btn">
         <property name="text">
          <string>Mark</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="5">
        <widget class="QPushButton" name="save_btn">
         <property name="text">
          <string>Save</string>
