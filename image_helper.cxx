@@ -122,23 +122,44 @@ QByteArray image_helper::get_string()
 	QPair<char, int> e;
 	QByteArray ret("");
 
-	int t1, t2;
+	int t1, t2, t3;
 	while (!tmp.isEmpty()) {
 		e = tmp.takeFirst();
-		if (e.first == '+') {
-			t1 = 0x10 | e.second;
-			ret += from_safe_int(t1);
-		} else if (e.first == '-') {
-			t1 = 0x30 | e.second;
-			ret += from_safe_int(t1);
-		} else if (e.first == 'r') {
-			t1 = 0x20 | ((e.second & 0x3c0) >> 6);
-			t2 = e.second & 0x3f;
-			ret += from_safe_int(t1);
-			ret += from_safe_int(t2);
-		} else if (e.first == '0' && e.second <= 0xf) {
+		if (e.first == '+' && e.second <= 5) {
 			t1 = e.second;
 			ret += from_safe_int(t1);
+		} else if (e.first == '+' && e.second <= 0x15) {
+			t1 = 6;
+			t2 = e.second - 6;
+			ret += from_safe_int(t1);
+			ret += from_safe_int(t2);
+		} else if (e.first == '-' && e.second <=5) {
+			t1 = 0x10 - e.second;
+			ret += from_safe_int(t1);
+		} else if (e.first == '-' && e.second <=0x15) {
+			t1 = 0xa;
+			t2 = e.second - 6;
+			ret += from_safe_int(t1);
+			ret += from_safe_int(t2);
+		} else if (e.first == 'r') {
+			if (e.second <= 0xff) {
+				t1 = 8;
+			} else {
+				t1 = 9;
+			}
+			t2 = (e.second & 0xf0) >> 4;
+			t3 = e.second & 0xf;
+			ret += from_safe_int(t1);
+			ret += from_safe_int(t2);
+			ret += from_safe_int(t3);
+		} else if (e.first == '0' && e.second == 1) {
+			t1 = 0;
+			ret += from_safe_int(t1);
+		} else if (e.first == '0' && e.second < 0x10) {
+			t1 = 7;
+			t2 = e.second;
+			ret += from_safe_int(t1);
+			ret += from_safe_int(t2);
 		} else if (e.first == '0') {
 			tmp.prepend(qMakePair('0',e.second & 0xf));
 			tmp.prepend(qMakePair('0',e.second >> 4));
@@ -304,10 +325,10 @@ QList< QPair<char, int> > image_helper::analyse()
 				ret += qMakePair('0', zeros);
 				zeros = 0;
 			}
-			if (e >= 0x101 && e <= 0x110) {
-				ret += qMakePair('+', e - 0x101);
-			} else if (e <= 0xff && e >= 0xf0) {
-				ret += qMakePair('-', 0xff - e);
+			if (e > 0x100 && e <= (0x100 + 0x15)) {
+				ret += qMakePair('+', e - 0x100);
+			} else if (e < 0x100 && e >= (0x100 - 0x15)) {
+				ret += qMakePair('-', 0x100 - e);
 			} else {
 				ret += qMakePair('r', e);
 			}
@@ -396,8 +417,8 @@ static void adv_point(QPoint *src, int w) {
 }
 
 static char from_safe_int(int i) {
-	if (i >= 0 && i < 64) {
-		return i + 32;
+	if (i >= 0 && i < 16) {
+		return i + 'a';
 	} else {
 		return 126;
 	}
