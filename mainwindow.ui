@@ -38,9 +38,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="delta_btn">
+       <widget class="QPushButton" name="spatial_btn">
         <property name="text">
-         <string>Delta</string>
+         <string>Spatial</string>
         </property>
        </widget>
       </item>

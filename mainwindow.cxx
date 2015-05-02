@@ -44,79 +44,10 @@ void MainWindow::on_colours_btn_clicked()
 	ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
-void MainWindow::on_delta_btn_clicked()
+void MainWindow::on_spatial_btn_clicked()
 {
-    if (!is_split || !is_mono) {
-        return;
-    }
-    ui->img_src->clear();
-    int w, h;
-    w = img.width();
-    h = img.height() / 4;
-    QImage new_img = QImage(w, h * 4, QImage::Format_RGB32);
-    int x, y, z;
-
-    /* Top left pixel. */
-    for (z=0; z<4; z++) {
-	/* No prediction. */
-        int src = qBlue(img.pixel(0, h * z));
-        QRgb dst = qRgb(src, src, src);
-        new_img.setPixel(0, h * z, dst);
-    }
-
-    /* Top row of pixels. */
-    for (x=1; x<w; x++) {
-        for (z=0; z<4; z++) {
-	    /* Predict from left pixel. */
-            int px_l = qBlue(img.pixel(x - 1, h * z));
-            int px_0 = qBlue(img.pixel(x    , h * z));
-            int px_p = 0xff & (px_0 - px_l + 128);
-            QRgb px = qRgb(px_p, px_p, px_p);
-            new_img.setPixel(x, h * z, px);
-        }
-    }
-
-    /* Left column of pixels. */
-    for (y=1; y<h; y++) {
-        for (z=0; z<4; z++) {
-	    /* Predict from top pixel. */
-            int px_t = qBlue(img.pixel(0, y + h * z - 1));
-            int px_0 = qBlue(img.pixel(0, y + h * z));
-            int px_p = 0xff & (px_0 - px_t + 128);
-            QRgb px = qRgb(px_p, px_p, px_p);
-            new_img.setPixel(0, y + h * z, px);
-        }
-    }
-
-    /* The rest of pixels. */
-    for (y=1; y<h; y++) {
-        for (x=1; x<w; x++) {
-            for (z=0; z<4; z++) {
-                int px_l = qBlue(img.pixel(x - 1, y + h * z));
-                int px_t = qBlue(img.pixel(x    , y + h * z - 1));
-                int px_x = qBlue(img.pixel(x - 1, y + h * z - 1));
-                int px_0 = qBlue(img.pixel(x    , y + h * z));
-		int px_p;
-		if (px_x >= px_l && px_x >= px_t) {
-		    /* Expecting light line on top or left. */
-		    px_p = px_l <= px_t ? px_l : px_t;
-		} else if (px_x <= px_l && px_x <= px_t) {
-		    /* Expecting dark line on top or left. */
-		    px_p = px_l >= px_t ? px_l : px_t;
-		} else {
-		    /* Expecting gradient */
-                    /* 2 * gradient + 3 * mean */
-		    px_p = (px_t * 5 + px_l * 5 - px_x * 2) / 8;
-		}
-		px_p = 0xff & (px_0 - px_p + 128);
-                QRgb px = qRgb(px_p, px_p, px_p);
-                new_img.setPixel(x, y + h * z, px);
-            }
-        }
-    }
-
-    img = new_img;
-    ui->img_src->setPixmap(QPixmap::fromImage(img));
+	this->img_hlp->proc_spatial();
+	ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
 void MainWindow::on_mark_btn_clicked()

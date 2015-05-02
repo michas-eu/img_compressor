@@ -16,6 +16,7 @@ public:
 	QPixmap get_src();
 	QPixmap get_gray();
 	void proc_colours();
+	void proc_spatial();
 
 private:
 	QImage src;
@@ -25,6 +26,10 @@ private:
 	QVector<quint16> plane_3;
 	QVector<quint16> plane_0;
 	void reset_planes();
+	static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+	static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out);
+	static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+	static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out);
 };
 
 #endif // IMAGE_HXX

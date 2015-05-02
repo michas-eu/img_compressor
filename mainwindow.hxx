@@ -24,8 +24,8 @@ public:
 private slots:
     void on_load_btn_clicked();
     void on_split_btn_clicked();
-    void on_delta_btn_clicked();
     void on_colours_btn_clicked();
+    void on_spatial_btn_clicked();
     void on_mark_btn_clicked();
     void on_save_btn_clicked();
 
