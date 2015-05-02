@@ -20,3 +20,7 @@ HEADERS  += mainwindow.hxx \
     image_helper.hxx
 
 FORMS    += mainwindow.ui
+
+DISTFILES += \
+    README \
+    LICENCE
