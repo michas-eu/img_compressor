@@ -1,5 +1,10 @@
 #include "image_helper.hxx"
 
+static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out);
+static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+
 image_helper::image_helper(QImage img)
 {
 	this->src = img;
@@ -119,10 +124,10 @@ void image_helper::proc_spatial()
 	tmp_0.resize(size);
 
 	/* Predict pixels. */
-	this->predict_spatial(w, h, this->plane_1, &tmp_1);
-	this->predict_spatial(w, h, this->plane_2, &tmp_2);
-	this->predict_spatial(w, h, this->plane_3, &tmp_3);
-	this->predict_spatial(w, h, this->plane_0, &tmp_0);
+	predict_spatial(w, h, this->plane_1, &tmp_1);
+	predict_spatial(w, h, this->plane_2, &tmp_2);
+	predict_spatial(w, h, this->plane_3, &tmp_3);
+	predict_spatial(w, h, this->plane_0, &tmp_0);
 
 	this->plane_1.clear();
 	this->plane_2.clear();
@@ -178,16 +183,16 @@ void image_helper::reset_planes()
 	this->planes_ready = true;
 }
 
-void image_helper::predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out)
 {
 	/* Just copy for now top left. */
 	(*out)[0] = in[0];
-	image_helper::predict_spatial_top(w, in, out);
-	image_helper::predict_spatial_left(w, h, in, out);
-	image_helper::predict_spatial_main(w, h, in, out);
+	predict_spatial_top(w, in, out);
+	predict_spatial_left(w, h, in, out);
+	predict_spatial_main(w, h, in, out);
 }
 
-void image_helper::predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out)
 {
 	int x;
 	for (x=1; x<w; x++) {
@@ -201,7 +206,7 @@ void image_helper::predict_spatial_top(int w, QVector<quint16> in, QVector<quint
 	}
 }
 
-void image_helper::predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out)
 {
 	int y;
 	for (y=1; y<h; y++) {
@@ -216,7 +221,7 @@ void image_helper::predict_spatial_left(int w, int h, QVector<quint16> in, QVect
 	}
 }
 
-void image_helper::predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out)
 {
 	int x, y;
 	/* Predict rest of pixels. */
