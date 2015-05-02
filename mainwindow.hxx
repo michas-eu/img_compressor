@@ -31,12 +31,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QImage img;
-    QImage marks;
     image_helper *img_hlp;
-    bool is_loaded;
-    bool is_split;
-    bool is_mono;
 };
 
 #endif // MAINWINDOW_H

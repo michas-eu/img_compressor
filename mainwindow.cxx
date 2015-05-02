@@ -6,9 +6,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    is_split = false;
-    is_mono = false;
-    is_loaded = false;
     img_hlp = NULL;
 }
 
@@ -21,12 +18,9 @@ MainWindow::~MainWindow()
 void MainWindow::on_load_btn_clicked()
 {
     QString str = QFileDialog::getOpenFileName();
-    img = QImage(str);
+    QImage img(str);
     this->img_hlp = new image_helper(img);
     ui->img_src->setPixmap(this->img_hlp->get_src());
-    is_split = false;
-    is_mono = false;
-    is_loaded = true;
 }
 
 void MainWindow::on_split_btn_clicked()
