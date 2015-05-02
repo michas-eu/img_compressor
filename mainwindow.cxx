@@ -52,41 +52,7 @@ void MainWindow::on_spatial_btn_clicked()
 
 void MainWindow::on_mark_btn_clicked()
 {
-    if (!is_mono) {
-        return;
-    }
-    ui->img_src->clear();
-    int w, h;
-    w = img.width();
-    h = img.height();
-    marks = QImage(w, h, QImage::Format_RGB32);
-    int history  = 0;
-    int y, x;
-    for (y=0; y<h; y++) {
-        for (x=0; x<w; x++) {
-            QRgb npx;
-            int cur = qBlue(img.pixel(x, y));
-            if (cur != 128) {
-		if (cur > 148 || cur < 108) {
-		    npx = qRgb(255, 255, 0);
-		} else if (cur > 132 || cur < 124) {
-		    npx = qRgb(96, 0, 0);
-		} else {
-                    npx = qRgb(0, 0, 0);
-		}
-                history = 0;
-            } else {
-                if (history) {
-                    npx = qRgb(0, 255, 0);
-                } else {
-                    npx = qRgb(0, 0, 255);
-                }
-	        history++;
-           }
-           marks.setPixel(x, y, npx);
-        }
-    }
-    ui->img_src->setPixmap(QPixmap::fromImage(marks));
+	ui->img_src->setPixmap(this->img_hlp->get_visualise());
 }
 
 void MainWindow::on_save_btn_clicked()

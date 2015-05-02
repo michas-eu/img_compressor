@@ -4,6 +4,7 @@ static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> 
 static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out);
 static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out);
 static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+static void adv_point(QPoint *src, int w);
 
 image_helper::image_helper(QImage img)
 {
@@ -65,11 +66,57 @@ QPixmap image_helper::get_gray()
 	return QPixmap::fromImage(tmp);
 }
 
+QPixmap image_helper::get_visualise()
+{
+	if (this->visualise.isNull()) {
+		QList< QPair<char, int> > tmp = this->analyse();
+
+		/* Get size. */
+		int w = src.width();
+		int h = src.height();
+
+		this->visualise = QImage(w, h*4, QImage::Format_RGB32);
+
+		QPair<char, int> e;
+		QPoint pt = QPoint(0, 0);
+		QRgb black = qRgb(0,0,0);
+		QRgb green = qRgb(0,128,0);
+		QRgb yellow = qRgb(255,255,0);
+		QRgb red = qRgb(255,0,0);
+		while (!tmp.isEmpty()) {
+			e = tmp.takeFirst();
+			if (e.first == '+' || e.first == '-') {
+				this->visualise.setPixel(pt,black);
+				adv_point(&pt, w);
+			} else if (e.first == 'r') {
+				this->visualise.setPixel(pt,yellow);
+				adv_point(&pt, w);
+			} else if (e.first == '0' && e.second == 1) {
+				this->visualise.setPixel(pt,black);
+				adv_point(&pt, w);
+			} else if (e.first == '0' && e.second > 1) {
+				int i;
+				for (i = 0; i < e.second; i++) {
+					this->visualise.setPixel(pt,green);
+					adv_point(&pt, w);
+				}
+			} else {
+				/* This is an error. */
+				this->visualise.setPixel(pt,red);
+				adv_point(&pt, w);
+			}
+		}
+	}
+	return QPixmap::fromImage(this->visualise);
+}
+
 void image_helper::proc_colours()
 {
 	if (!this->planes_ready) {
 		this->reset_planes();
 	}
+
+	this->visualise = QImage();
 
 	/* Get size. */
 	int w = src.width();
@@ -108,6 +155,8 @@ void image_helper::proc_spatial()
 		this->reset_planes();
 	}
 
+	this->visualise = QImage();
+
 	/* Get size. */
 	int size = this->plane_0.size();
 	int w = src.width();
@@ -143,10 +192,13 @@ void image_helper::proc_spatial()
 void image_helper::reset()
 {
 	this->planes_ready = false;
+	this->visualise = QImage();
 }
 
 void image_helper::reset_planes()
 {
+	this->visualise = QImage();
+
 	/* Release memory and drop old data. */
 	this->plane_1.clear();
 	this->plane_2.clear();
@@ -181,6 +233,51 @@ void image_helper::reset_planes()
 	}
 
 	this->planes_ready = true;
+}
+
+QList<quint16> image_helper::get_raw()
+{
+	if (!this->planes_ready) {
+		this->reset_planes();
+	}
+
+	QList<quint16> ret;
+	ret = QList<quint16>::fromVector(this->plane_1);
+	ret+= QList<quint16>::fromVector(this->plane_2);
+	ret+= QList<quint16>::fromVector(this->plane_3);
+	ret+= QList<quint16>::fromVector(this->plane_0);
+	return ret;
+}
+
+QList< QPair<char, int> > image_helper::analyse()
+{
+	QList<quint16> tmp = this->get_raw();
+	QList< QPair<char, int> > ret;
+	int zeros = 0;
+
+	while (!tmp.isEmpty()) {
+		quint16 e = tmp.takeFirst();
+		if (e == 0x100) {
+			zeros++;
+		} else {
+			if (zeros) {
+				ret += qMakePair('0', zeros);
+				zeros = 0;
+			}
+			if (e >= 0x101 && e <= 0x110) {
+				ret += qMakePair('+', e - 0x101);
+			} else if (e <= 0xff && e >= 0xf0) {
+				ret += qMakePair('-', 0xff - e);
+			} else {
+				ret += qMakePair('r', e);
+			}
+		}
+	}
+	if (zeros) {
+		ret += qMakePair('0', zeros);
+	}
+
+	return ret;
 }
 
 static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out)
@@ -247,5 +344,13 @@ static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quin
 			px_p = 0x1ff & (px_0 - px_p + 0x100);
 			(*out)[i] = px_p;
 		}
+	}
+}
+
+static void adv_point(QPoint *src, int w) {
+	src->rx()++;
+	if (src->rx() == w) {
+		src->ry() ++;
+		src->rx() = 0;
 	}
 }
