@@ -396,6 +396,13 @@ static void adv_point(QPoint *src, int w) {
 }
 
 static char from_safe_int(int i) {
+	if (i >= 0 && i < 64) {
+		return i + 32;
+	} else {
+		return 126;
+	}
+/* May be usefull later. */
+#if 0
 	QVector<char> map(64);
 	map[0]  = 'A';
 	map[1]  = 'B';
@@ -462,4 +469,5 @@ static char from_safe_int(int i) {
 	map[62] = '+';
 	map[63] = '/';
 	return map.value(i, '*');
+#endif
 }
