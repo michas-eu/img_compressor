@@ -20,6 +20,7 @@ public:
 	QPair<int,int> get_wh();
 	QPixmap get_src();
 	QPixmap get_gray();
+	QPixmap get_joined();
 	QPixmap get_visualise();
 	QByteArray get_string();
 	void proc_colours(bool reverse=false);

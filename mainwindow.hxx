@@ -25,6 +25,7 @@ private slots:
     void on_load_btn_clicked();
     void on_reload_btn_clicked();
     void on_split_btn_clicked();
+    void on_join_btn_clicked();
     void on_colours_btn_clicked();
     void on_uncolours_btn_clicked();
     void on_spatial_btn_clicked();

@@ -25,6 +25,9 @@ void MainWindow::on_load_btn_clicked()
 
 void MainWindow::on_reload_btn_clicked()
 {
+	if (!this->img_hlp) {
+		return;
+	}
 	ui->img_src->setPixmap(this->img_hlp->get_src());
 }
 
@@ -36,6 +39,13 @@ void MainWindow::on_split_btn_clicked()
     ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
+void MainWindow::on_join_btn_clicked()
+{
+	if (!this->img_hlp) {
+		return;
+	}
+	ui->img_src->setPixmap(this->img_hlp->get_joined());
+}
 
 void MainWindow::on_colours_btn_clicked()
 {

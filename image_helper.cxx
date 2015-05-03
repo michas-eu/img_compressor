@@ -77,6 +77,38 @@ QPixmap image_helper::get_gray()
 	return QPixmap::fromImage(tmp);
 }
 
+QPixmap image_helper::get_joined()
+{
+	if (!this->planes_ready) {
+		return QPixmap::fromImage(this->src);
+	}
+
+	/* Get size. */
+	int w = src.width();
+	int h = src.height();
+
+	QImage tmp = QImage(w, h, QImage::Format_ARGB32);
+	/* Iterate and set planes. */
+	int x, y;
+	for (y=0; y<h; y++) {
+		for (x=0; x<w; x++) {
+			quint16 r, g, b, a;
+			QRgb px;
+			int i = x + y * w;
+
+			g = this->plane_1[i] >> 1;
+			r = this->plane_2[i] >> 1;
+			b = this->plane_3[i] >> 1;
+			a = this->plane_0[i] >> 1;
+
+			px = qRgba(r,g,b,a);
+			tmp.setPixel(x, y, px);
+		}
+	}
+
+	return QPixmap::fromImage(tmp);
+}
+
 QPixmap image_helper::get_visualise()
 {
 	if (this->visualise.isNull()) {
