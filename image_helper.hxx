@@ -23,7 +23,7 @@ public:
 	QPixmap get_visualise();
 	QByteArray get_string();
 	void proc_colours(bool reverse=false);
-	void proc_spatial();
+	void proc_spatial(bool reverse=false);
 
 private:
 	QImage src;

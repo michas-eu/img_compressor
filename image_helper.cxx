@@ -1,9 +1,14 @@
 #include "image_helper.hxx"
 
 static void predict_spatial(int w, int h, QVector<quint16> *plane);
+static void unpredict_spatial(int w, int h, QVector<quint16> *plane);
 static void predict_spatial_top(int w, QVector<quint16> *plane);
+static void unpredict_spatial_top(int w, QVector<quint16> *plane);
 static void predict_spatial_left(int w, int h, QVector<quint16> *plane);
+static void unpredict_spatial_left(int w, int h, QVector<quint16> *plane);
 static void predict_spatial_main(int w, int h, QVector<quint16> *plane);
+static void unpredict_spatial_main(int w, int h, QVector<quint16> *plane);
+static int predict_from_3(int px_x, int px_t, int px_l);
 static void adv_point(QPoint *src, int w);
 static char from_safe_int(int i);
 
@@ -197,7 +202,7 @@ void image_helper::proc_colours(bool reverse)
 	}
 }
 
-void image_helper::proc_spatial()
+void image_helper::proc_spatial(bool reverse)
 {
 	if (!this->planes_ready) {
 		this->reset_planes();
@@ -210,10 +215,17 @@ void image_helper::proc_spatial()
 	int h = src.height();
 
 	/* Predict pixels. */
-	predict_spatial(w, h, &this->plane_1);
-	predict_spatial(w, h, &this->plane_2);
-	predict_spatial(w, h, &this->plane_3);
-	predict_spatial(w, h, &this->plane_0);
+	if (reverse) {
+		unpredict_spatial(w, h, &this->plane_1);
+		unpredict_spatial(w, h, &this->plane_2);
+		unpredict_spatial(w, h, &this->plane_3);
+		unpredict_spatial(w, h, &this->plane_0);
+	} else {
+		predict_spatial(w, h, &this->plane_1);
+		predict_spatial(w, h, &this->plane_2);
+		predict_spatial(w, h, &this->plane_3);
+		predict_spatial(w, h, &this->plane_0);
+	}
 }
 
 void image_helper::reset()
@@ -362,6 +374,13 @@ static void predict_spatial(int w, int h, QVector<quint16> *plane)
 	predict_spatial_top(w, plane);
 }
 
+static void unpredict_spatial(int w, int h, QVector<quint16> *plane)
+{
+	unpredict_spatial_top(w, plane);
+	unpredict_spatial_left(w, h, plane);
+	unpredict_spatial_main(w, h, plane);
+}
+
 static void predict_spatial_top(int w, QVector<quint16> *plane)
 {
 	int x;
@@ -373,6 +392,20 @@ static void predict_spatial_top(int w, QVector<quint16> *plane)
 		px_0 = (*plane)[x];
 		px_p = 0x1ff & (px_0 - px_l + 0x100);
 		(*plane)[x] = px_p;
+	}
+}
+
+static void unpredict_spatial_top(int w, QVector<quint16> *plane)
+{
+	int x;
+	for (x=1; x<w; x++) {
+		/* Predict from left pixel. */
+		int px_l, px_0;
+
+		px_l = (*plane)[x-1];
+		px_0 = (*plane)[x];
+		px_0 = 0x1ff & (px_0 + px_l - 0x100);
+		(*plane)[x] = px_0;
 	}
 }
 
@@ -391,6 +424,21 @@ static void predict_spatial_left(int w, int h, QVector<quint16> *plane)
 	}
 }
 
+static void unpredict_spatial_left(int w, int h, QVector<quint16> *plane)
+{
+	int y;
+	for (y=1; y<h; y++) {
+		/* Predict from top pixel. */
+		int i = y * w;
+		int px_t, px_0;
+
+		px_t = (*plane)[i - w];
+		px_0 = (*plane)[i];
+		px_0 = 0x1ff & (px_0 + px_t - 0x100);
+		(*plane)[i] = px_0;
+	}
+}
+
 static void predict_spatial_main(int w, int h, QVector<quint16> *plane)
 {
 	int x, y;
@@ -404,20 +452,47 @@ static void predict_spatial_main(int w, int h, QVector<quint16> *plane)
 			px_x = (*plane)[i - w - 1];
 			px_0 = (*plane)[i];
 
-			/* Pixel art friendly. */
-			if (px_x == px_t) {
-				px_p = px_l;
-			} else if (px_x == px_l) {
-				px_p = px_t;
-			} else if (px_t == px_l) {
-				px_p = px_x;
-			} else {
-				px_p = (px_t * 3 + px_l * 3 + px_x * 2) / 8;
-			}
+			px_p = predict_from_3(px_x, px_t, px_l);
 			px_p = 0x1ff & (px_0 - px_p + 0x100);
 			(*plane)[i] = px_p;
 		}
 	}
+}
+
+static void unpredict_spatial_main(int w, int h, QVector<quint16> *plane)
+{
+	int x, y;
+	/* Predict rest of pixels. */
+	for (y=1; y<h; y++) {
+		for (x=1; x<w; x++) {
+			int i = y * w + x;
+			int px_t, px_l, px_x, px_0, px_p;
+			px_t = (*plane)[i - w];
+			px_l = (*plane)[i - 1];
+			px_x = (*plane)[i - w - 1];
+			px_0 = (*plane)[i];
+
+			px_p = predict_from_3(px_x, px_t, px_l);
+			px_0 = 0x1ff & (px_0 + px_p - 0x100);
+			(*plane)[i] = px_0;
+		}
+	}
+}
+
+static int predict_from_3(int px_x, int px_t, int px_l)
+{
+	int px_p;
+	/* Pixel art friendly. */
+	if (px_x == px_t) {
+		px_p = px_l;
+	} else if (px_x == px_l) {
+		px_p = px_t;
+	} else if (px_t == px_l) {
+		px_p = px_x;
+	} else {
+		px_p = (px_t * 3 + px_l * 3 + px_x * 2) / 8;
+	}
+	return px_p;
 }
 
 static void adv_point(QPoint *src, int w) {

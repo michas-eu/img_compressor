@@ -27,6 +27,7 @@ private slots:
     void on_colours_btn_clicked();
     void on_uncolours_btn_clicked();
     void on_spatial_btn_clicked();
+    void on_unspatial_btn_clicked();
     void on_mark_btn_clicked();
     void on_save_btn_clicked();
 

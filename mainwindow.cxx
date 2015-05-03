@@ -52,6 +52,13 @@ void MainWindow::on_spatial_btn_clicked()
 	ui->img_src->setPixmap(this->img_hlp->get_gray());
 }
 
+void MainWindow::on_unspatial_btn_clicked()
+{
+	bool reverse = true;
+	this->img_hlp->proc_spatial(reverse);
+	ui->img_src->setPixmap(this->img_hlp->get_gray());
+}
+
 void MainWindow::on_mark_btn_clicked()
 {
 	ui->img_src->setPixmap(this->img_hlp->get_visualise());
