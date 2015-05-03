@@ -1,9 +1,9 @@
 #include "image_helper.hxx"
 
-static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out);
-static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out);
-static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out);
-static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out);
+static void predict_spatial(int w, int h, QVector<quint16> *plane);
+static void predict_spatial_top(int w, QVector<quint16> *plane);
+static void predict_spatial_left(int w, int h, QVector<quint16> *plane);
+static void predict_spatial_main(int w, int h, QVector<quint16> *plane);
 static void adv_point(QPoint *src, int w);
 static char from_safe_int(int i);
 
@@ -206,35 +206,14 @@ void image_helper::proc_spatial()
 	this->visualise = QImage();
 
 	/* Get size. */
-	int size = this->plane_0.size();
 	int w = src.width();
 	int h = src.height();
 
-	/* Set temporary tables. */
-	QVector<quint16> tmp_1;
-	QVector<quint16> tmp_2;
-	QVector<quint16> tmp_3;
-	QVector<quint16> tmp_0;
-	tmp_1.resize(size);
-	tmp_2.resize(size);
-	tmp_3.resize(size);
-	tmp_0.resize(size);
-
 	/* Predict pixels. */
-	predict_spatial(w, h, this->plane_1, &tmp_1);
-	predict_spatial(w, h, this->plane_2, &tmp_2);
-	predict_spatial(w, h, this->plane_3, &tmp_3);
-	predict_spatial(w, h, this->plane_0, &tmp_0);
-
-	this->plane_1.clear();
-	this->plane_2.clear();
-	this->plane_3.clear();
-	this->plane_0.clear();
-
-	this->plane_1 = tmp_1;
-	this->plane_2 = tmp_2;
-	this->plane_3 = tmp_3;
-	this->plane_0 = tmp_0;
+	predict_spatial(w, h, &this->plane_1);
+	predict_spatial(w, h, &this->plane_2);
+	predict_spatial(w, h, &this->plane_3);
+	predict_spatial(w, h, &this->plane_0);
 }
 
 void image_helper::reset()
@@ -376,56 +355,54 @@ void image_helper::color_to_grba(int i)
 	this->plane_3[i] = b;
 }
 
-static void predict_spatial(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial(int w, int h, QVector<quint16> *plane)
 {
-	/* Just copy for now top left. */
-	(*out)[0] = in[0];
-	predict_spatial_top(w, in, out);
-	predict_spatial_left(w, h, in, out);
-	predict_spatial_main(w, h, in, out);
+	predict_spatial_main(w, h, plane);
+	predict_spatial_left(w, h, plane);
+	predict_spatial_top(w, plane);
 }
 
-static void predict_spatial_top(int w, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_top(int w, QVector<quint16> *plane)
 {
 	int x;
-	for (x=1; x<w; x++) {
+	for (x=w-1; x>0; x--) {
 		/* Predict from left pixel. */
 		int px_l, px_0, px_p;
 
-		px_l = in[x-1];
-		px_0 = in[x];
+		px_l = (*plane)[x-1];
+		px_0 = (*plane)[x];
 		px_p = 0x1ff & (px_0 - px_l + 0x100);
-		(*out)[x] = px_p;
+		(*plane)[x] = px_p;
 	}
 }
 
-static void predict_spatial_left(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_left(int w, int h, QVector<quint16> *plane)
 {
 	int y;
-	for (y=1; y<h; y++) {
+	for (y=h-1; y>0; y--) {
 		/* Predict from top pixel. */
 		int i = y * w;
 		int px_t, px_0, px_p;
 
-		px_t = in[i - w];
-		px_0 = in[i];
+		px_t = (*plane)[i - w];
+		px_0 = (*plane)[i];
 		px_p = 0x1ff & (px_0 - px_t + 0x100);
-		(*out)[i] = px_p;
+		(*plane)[i] = px_p;
 	}
 }
 
-static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quint16> *out)
+static void predict_spatial_main(int w, int h, QVector<quint16> *plane)
 {
 	int x, y;
 	/* Predict rest of pixels. */
-	for (y=1; y<h; y++) {
-		for (x=1; x<w; x++) {
+	for (y=h-1; y>0; y--) {
+		for (x=w-1; x>0; x--) {
 			int i = y * w + x;
 			int px_t, px_l, px_x, px_0, px_p;
-			px_t = in[i - w];
-			px_l = in[i - 1];
-			px_x = in[i - w - 1];
-			px_0 = in[i];
+			px_t = (*plane)[i - w];
+			px_l = (*plane)[i - 1];
+			px_x = (*plane)[i - w - 1];
+			px_0 = (*plane)[i];
 
 			/* Pixel art friendly. */
 			if (px_x == px_t) {
@@ -438,7 +415,7 @@ static void predict_spatial_main(int w, int h, QVector<quint16> in, QVector<quin
 				px_p = (px_t * 3 + px_l * 3 + px_x * 2) / 8;
 			}
 			px_p = 0x1ff & (px_0 - px_p + 0x100);
-			(*out)[i] = px_p;
+			(*plane)[i] = px_p;
 		}
 	}
 }
