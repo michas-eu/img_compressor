@@ -23,6 +23,11 @@ void MainWindow::on_load_btn_clicked()
     ui->img_src->setPixmap(this->img_hlp->get_src());
 }
 
+void MainWindow::on_reload_btn_clicked()
+{
+	ui->img_src->setPixmap(this->img_hlp->get_src());
+}
+
 void MainWindow::on_split_btn_clicked()
 {
     if (!this->img_hlp) {
