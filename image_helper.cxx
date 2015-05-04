@@ -96,10 +96,10 @@ QPixmap image_helper::get_joined()
 			QRgb px;
 			int i = x + y * w;
 
-			g = this->plane_1[i] >> 1;
-			r = this->plane_2[i] >> 1;
-			b = this->plane_3[i] >> 1;
-			a = this->plane_0[i] >> 1;
+			g = (this->plane_1[i] - 0x80) & 0xff;
+			r = (this->plane_2[i] - 0x80) & 0xff;
+			b = (this->plane_3[i] - 0x80) & 0xff;
+			a = (this->plane_0[i] - 0x80) & 0xff;
 
 			px = qRgba(r,g,b,a);
 			tmp.setPixel(x, y, px);
@@ -292,10 +292,10 @@ void image_helper::reset_planes()
 		for (x=0; x<w; x++) {
 			QRgb opx = src.pixel(x, y);
 			int px_a, px_g, px_r, px_b;
-			px_a = qAlpha(opx) << 1;
-			px_g = qGreen(opx) << 1;
-			px_r = qRed(opx) << 1;
-			px_b = qBlue(opx) << 1;
+			px_a = qAlpha(opx) + 0x80;
+			px_g = qGreen(opx) + 0x80;
+			px_r = qRed(opx)   + 0x80;
+			px_b = qBlue(opx)  + 0x80;
 			this->plane_1 += px_g;
 			this->plane_2 += px_r;
 			this->plane_3 += px_b;
@@ -357,16 +357,16 @@ void image_helper::color_to_lopa(int i)
 	qint16 g, r, b;
 	qint16 t;
 
-	g = this->plane_1[i] >> 1;
-	r = this->plane_2[i] >> 1;
-	b = this->plane_3[i] >> 1;
+	g = (this->plane_1[i] - 0x80) & 0xff;
+	r = (this->plane_2[i] - 0x80) & 0xff;
+	b = (this->plane_3[i] - 0x80) & 0xff;
 
 	o = r - b;
 	t = b + o / 2;
 	p = t - g;
 	l = t - p / 2;
 
-	l <<= 1;
+	l += 0x80;
 	o += 0xff;
 	p += 0xff;
 
@@ -381,18 +381,18 @@ void image_helper::color_to_grba(int i)
 	qint16 l, o, p;
 	qint16 t;
 
-	l = this->plane_1[i] >> 1;
-	o = this->plane_2[i] - 0xff;
-	p = this->plane_3[i] - 0xff;
+	l = (this->plane_1[i] - 0x80) & 0xff;
+	o = (this->plane_2[i] & 0x1ff ) - 0xff;
+	p = (this->plane_3[i] & 0x1ff ) - 0xff;;
 
 	t = l + p / 2;
 	g = t - p;
 	b = t - o / 2;
 	r = o + b;
 
-	g <<= 1;
-	r <<= 1;
-	b <<= 1;
+	g += 0x80;
+	r += 0x80;
+	b += 0x80;
 
 	this->plane_1[i] = g;
 	this->plane_2[i] = r;
