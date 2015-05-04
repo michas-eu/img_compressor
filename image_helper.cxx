@@ -537,7 +537,7 @@ static void adv_point(QPoint *src, int w) {
 
 static char from_safe_int(int i) {
 	if (i >= 0 && i < 16) {
-		return i + 'a';
+		return i + '@';
 	} else {
 		return 126;
 	}

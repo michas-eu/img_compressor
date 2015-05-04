@@ -91,8 +91,20 @@ void MainWindow::on_save_btn_clicked()
     QDataStream out(&file);
     QPair<int, int> wh = this->img_hlp->get_wh();
     out.writeRawData(QString("Trip_01").toLatin1(), 8);
-    out << (quint16)wh.first;
-    out << (quint16)wh.second;
-    out << img_hlp->get_string();
+
+    out << (quint16)(wh.first);
+    out << (quint16)(wh.second);
+
+    QByteArray str = img_hlp->get_string();
+    if (str.size() & 1) {
+        str += '\0';
+    }
+
+    int i;
+    for (i = 0; i < str.size(); i += 2) {
+        int tmp;
+        tmp = ((str[i] & 0xf) << 4) + (str[i+1] & 0xf);
+        out << (unsigned char)tmp;
+    }
     file.close();
 }
