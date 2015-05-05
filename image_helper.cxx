@@ -182,7 +182,7 @@ QByteArray image_helper::get_string()
 			ret += from_safe_int(t2);
 		} else if (e.first == '+' || e.first == '-') {
 			if (e.first == '+') {
-				t1 = 8;
+				t1 = 7;
 			} else {
 				t1 = 9;
 			}
@@ -195,7 +195,7 @@ QByteArray image_helper::get_string()
 			t1 = 0;
 			ret += from_safe_int(t1);
 		} else if (e.first == '0' && e.second < 0x10) {
-			t1 = 7;
+			t1 = 8;
 			t2 = e.second;
 			ret += from_safe_int(t1);
 			ret += from_safe_int(t2);
