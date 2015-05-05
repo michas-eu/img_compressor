@@ -127,26 +127,27 @@ QPixmap image_helper::get_visualise()
 		QRgb green = qRgb(0,128,0);
 		QRgb yellow = qRgb(255,255,0);
 		QRgb red = qRgb(255,0,0);
+		QRgb pixel;
 		while (!tmp.isEmpty()) {
 			e = tmp.takeFirst();
-			if (e.first == '+' || e.first == '-') {
-				this->visualise.setPixel(pt,black);
-				adv_point(&pt, w);
-			} else if (e.first == 'r') {
-				this->visualise.setPixel(pt,yellow);
-				adv_point(&pt, w);
-			} else if (e.first == '0' && e.second == 1) {
-				this->visualise.setPixel(pt,blue);
-				adv_point(&pt, w);
-			} else if (e.first == '0' && e.second > 1) {
+			if (e.first == '0' && e.second > 1) {
 				int i;
 				for (i = 0; i < e.second; i++) {
 					this->visualise.setPixel(pt,green);
 					adv_point(&pt, w);
 				}
 			} else {
-				/* This is an error. */
-				this->visualise.setPixel(pt,red);
+				if (e.first == '0' && e.second == 1) {
+					pixel = blue;
+				} else if (e.second > 0 && e.second <= 0x15){
+					pixel = black;
+				} else if (e.second > 0x15){
+					pixel = yellow;
+				} else {
+					/* This is an error. */
+					pixel = red;
+				}
+				this->visualise.setPixel(pt,pixel);
 				adv_point(&pt, w);
 			}
 		}
@@ -179,8 +180,8 @@ QByteArray image_helper::get_string()
 			t2 = e.second - 6;
 			ret += from_safe_int(t1);
 			ret += from_safe_int(t2);
-		} else if (e.first == 'r') {
-			if (e.second <= 0xff) {
+		} else if (e.first == '+' || e.first == '-') {
+			if (e.first == '+') {
 				t1 = 8;
 			} else {
 				t1 = 9;
@@ -335,12 +336,10 @@ QList< QPair<char, int> > image_helper::analyse()
 				ret += qMakePair('0', zeros);
 				zeros = 0;
 			}
-			if (e > 0x100 && e <= (0x100 + 0x15)) {
+			if (e > 0x100) {
 				ret += qMakePair('+', e - 0x100);
-			} else if (e < 0x100 && e >= (0x100 - 0x15)) {
+			} else if (e < 0x100) {
 				ret += qMakePair('-', 0x100 - e);
-			} else {
-				ret += qMakePair('r', e);
 			}
 		}
 	}
