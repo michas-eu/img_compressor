@@ -521,7 +521,35 @@ static int predict_from_3(int px_x, int px_t, int px_l)
 	} else if (px_t == px_l) {
 		px_p = px_x;
 	} else {
-		px_p = (px_t * 3 + px_l * 3 + px_x * 2) / 8;
+		/* Very simple sort */
+		int a = px_x, b=px_t, c=px_l;
+		int tmp;
+		if (a > b) {
+			tmp = a;
+			a = b;
+			b = tmp;
+		}
+		if (b > c) {
+			tmp = b;
+			b = c;
+			c = tmp;
+		}
+		if (a > b) {
+			tmp = a;
+			a = b;
+			b = tmp;
+		}
+		if (a == px_x || c == px_x) {
+			/* It looks there is gradient. */
+			px_p = px_t + px_l - px_x;
+			if (px_p < a) {
+				px_p = a;
+			} else if (px_p > c) {
+				px_p = c;
+			}
+		} else {
+			px_p = (px_t * 3 + px_l * 3 + px_x * 2) / 8;
+		}
 	}
 	return px_p;
 }
